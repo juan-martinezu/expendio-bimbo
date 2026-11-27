@@ -59,7 +59,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .p .foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:8px}
 .price{font-family:"Baloo 2",system-ui,sans-serif;font-size:24px;font-weight:800;white-space:nowrap}
 .tag{font-size:13px;font-weight:800;border-radius:6px;padding:2px 8px;align-self:flex-start}
-.tag.ok{background:light-dark(#e2f3e4,#1f3a23);color:var(--ok)}.tag.low{background:var(--yolk2)}.tag.no{background:light-dark(#fde4e1,#4a1f1a);color:var(--red)}
+.tag.promo{background:var(--red);color:#fff}.tag.ok{background:light-dark(#e2f3e4,#1f3a23);color:var(--ok)}.tag.low{background:var(--yolk2)}.tag.no{background:light-dark(#fde4e1,#4a1f1a);color:var(--red)}
 .qty{display:inline-flex;align-items:center;border:2px solid var(--line);border-radius:999px}
 .qty button{width:40px;height:40px;border:0;background:none;font-size:20px;font-weight:800;cursor:pointer;border-radius:50%}
 .qty span{min-width:26px;text-align:center;font-weight:800}
@@ -153,7 +153,6 @@ fieldset{border:0;padding:0;margin:0;display:grid;gap:8px}legend{font-weight:800
     <input id="q" type="search" placeholder="Buscar: pan blanco, gansito, tortillinas…" aria-label="Buscar productos">
     <label><input type="checkbox" id="onlyStock" checked> Solo disponibles</label>
   </div>
-  <p class="note" id="sampleNote">Productos, precios y existencias de ejemplo: el dueño los cambia en la configuración del sitio.</p>
   <div class="grid" id="grid"></div>
 </div></section>
 
@@ -207,6 +206,9 @@ fieldset{border:0;padding:0;margin:0;display:grid;gap:8px}legend{font-weight:800
   </div>
 </aside>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="icons.js"></script>
 <script>
 {
 /* ======== CONFIGURACIÓN: cambia aquí los datos de tu expendio ======== */
@@ -217,30 +219,11 @@ const CONFIG={
   mapa:"https://maps.google.com/?q=Av.+Hidalgo+120+Centro",
   facebook:"https://www.facebook.com/profile.php?id=61580821344798",
   linkPago:"",                         // tu enlace de Mercado Pago / Clip / Stripe; vacío = se manda por WhatsApp
-  envio:25, envioGratisDesde:300, zona:"Entregamos en un radio de 3 km de la tienda.",
+  envio:25, envioGratisDesde:300,    // si cambias estos dos, cambia también supabase/schema.sql
+  zona:"Entregamos en un radio de 3 km de la tienda.",
   horario:[["Lunes a viernes","07:00","21:00"],["Sábado","07:00","21:00"],["Domingo","08:00","15:00"]]
 };
-/* stock: número de piezas en tienda (0 = agotado). Precios de ejemplo en MXN. */
-const PRODUCTS=[
- {id:1,n:"Pan Blanco Grande",b:"Bimbo",c:"Pan de caja",m:"680 g",p:52,s:24,i:"loaf",col:"#e8f1ff"},
- {id:2,n:"Pan Integral",b:"Bimbo",c:"Pan de caja",m:"620 g",p:58,s:12,i:"loaf",col:"#f3e7d6"},
- {id:3,n:"Pan Tostado Clásico",b:"Bimbo",c:"Pan de caja",m:"210 g",p:38,s:3,i:"toast",col:"#fff0cc"},
- {id:4,n:"Medias Noches",b:"Bimbo",c:"Bollería",m:"8 piezas",p:45,s:10,i:"bun",col:"#ffe9d1"},
- {id:5,n:"Bimbollos",b:"Bimbo",c:"Bollería",m:"8 piezas",p:46,s:0,i:"bun",col:"#ffe9d1"},
- {id:6,n:"Roles de Canela",b:"Bimbo",c:"Pan dulce",m:"2 piezas",p:32,s:15,i:"roll",col:"#fde0c6"},
- {id:7,n:"Conchas",b:"Bimbo",c:"Pan dulce",m:"2 piezas",p:30,s:9,i:"concha",col:"#fff0cc"},
- {id:8,n:"Nito",b:"Bimbo",c:"Pan dulce",m:"62 g",p:20,s:30,i:"roll",col:"#f3e1d2"},
- {id:9,n:"Mantecadas",b:"Bimbo",c:"Pan dulce",m:"4 piezas",p:38,s:6,i:"muffin",col:"#fff0cc"},
- {id:10,n:"Panqué con Nuez",b:"Bimbo",c:"Pan dulce",m:"255 g",p:65,s:4,i:"loafcake",col:"#f3e7d6"},
- {id:11,n:"Gansito",b:"Marinela",c:"Pastelitos",m:"50 g",p:20,s:40,i:"cake",col:"#ffe1dd"},
- {id:12,n:"Pingüinos",b:"Marinela",c:"Pastelitos",m:"2 piezas",p:24,s:22,i:"cake",col:"#e6e0f5"},
- {id:13,n:"Submarinos",b:"Marinela",c:"Pastelitos",m:"3 piezas",p:22,s:2,i:"cake",col:"#ffe1dd"},
- {id:14,n:"Barritas de Fresa",b:"Marinela",c:"Galletas",m:"67 g",p:20,s:25,i:"bar",col:"#ffe1e8"},
- {id:15,n:"Polvorones",b:"Marinela",c:"Galletas",m:"8 piezas",p:28,s:0,i:"cookie",col:"#f3e7d6"},
- {id:16,n:"Tortillinas",b:"Tía Rosa",c:"Tortillas",m:"10 piezas",p:34,s:14,i:"tortilla",col:"#fff6dc"},
- {id:17,n:"Donas Espolvoreadas",b:"Bimbo",c:"Pan dulce",m:"6 piezas",p:36,s:8,i:"donut",col:"#fde0e6"},
- {id:18,n:"Tostadas Horneadas",b:"Milpa Real",c:"Tortillas",m:"18 piezas",p:30,s:11,i:"tostada",col:"#fff0cc"}
-];
+/* Los productos, precios y existencias se administran en admin.html (base de datos Supabase). */
 /* ===================================================================== */
 
 const $=s=>document.querySelector(s);
@@ -249,25 +232,22 @@ const money=n=>"$"+n.toLocaleString("es-MX",{minimumFractionDigits:2,maximumFrac
 const K="expendio-cart";
 let cart={};try{cart=JSON.parse(localStorage.getItem(K)||"{}")||{}}catch(e){cart={}}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(cart))}catch(e){}};
-let cat="Todo";
-
-const S='stroke="#2b1a10" stroke-width="3" stroke-linejoin="round"';
-const ICONS={
- loaf:`<rect x="20" y="22" width="80" height="78" rx="18" fill="#f7fbff" ${S}/><rect x="28" y="36" width="64" height="44" rx="12" fill="#e4a14d"/><rect x="34" y="84" width="52" height="10" rx="5" fill="#d8372a"/>`,
- toast:`<rect x="26" y="30" width="58" height="62" rx="14" fill="#c9792f" ${S}/><rect x="38" y="24" width="58" height="62" rx="14" fill="#e9a955" ${S}/><rect x="48" y="36" width="38" height="38" rx="8" fill="#f7d79a"/>`,
- bun:`<ellipse cx="60" cy="88" rx="44" ry="8" fill="#000" opacity=".12"/><path d="M16 84c0-30 20-46 44-46s44 16 44 46z" fill="#e39a3b" ${S}/><path d="M42 58l3 4M60 52v5M78 58l-3 4" stroke="#fff4dc" stroke-width="5" stroke-linecap="round"/>`,
- roll:`<circle cx="60" cy="62" r="38" fill="#d98b3a" ${S}/><path d="M60 62m-6 0a6 6 0 1 1 12 0a14 14 0 1 1-28 0a22 22 0 1 1 44 0a30 30 0 1 1-58 4" fill="none" stroke="#7a3f14" stroke-width="5"/>`,
- concha:`<path d="M16 82c0-30 20-48 44-48s44 18 44 48z" fill="#f4e2c2" ${S}/><path d="M30 70q30-30 60 0M38 54q22-14 44 0M60 36v44" stroke="#c99a5a" stroke-width="4" fill="none"/><rect x="14" y="80" width="92" height="10" rx="5" fill="#d98b3a" ${S}/>`,
- muffin:`<path d="M32 66h56l-8 32H40z" fill="#d8372a" ${S}/><path d="M26 68c0-22 14-36 34-36s34 14 34 36z" fill="#f2b25a" ${S}/>`,
- loafcake:`<path d="M18 52h84l-6 42H24z" fill="#b8661f" ${S}/><path d="M16 54c10-22 78-22 88 0" fill="#e4a14d" ${S}/><circle cx="44" cy="44" r="4" fill="#5a2c12"/><circle cx="62" cy="40" r="4" fill="#5a2c12"/><circle cx="78" cy="45" r="4" fill="#5a2c12"/>`,
- cake:`<rect x="18" y="40" width="84" height="46" rx="14" fill="#5a2c12" ${S}/><path d="M24 56q9 8 18 0t18 0 18 0 18 0" stroke="#fff" stroke-width="5" fill="none"/><circle cx="40" cy="48" r="4" fill="#ff6a55"/><circle cx="74" cy="47" r="4" fill="#ffc93c"/>`,
- bar:`<rect x="16" y="42" width="88" height="38" rx="10" fill="#e4a14d" ${S}/><rect x="26" y="52" width="68" height="18" rx="6" fill="#e0415a"/>`,
- cookie:`<circle cx="60" cy="60" r="38" fill="#e8b878" ${S}/><circle cx="60" cy="60" r="26" fill="none" stroke="#c99a5a" stroke-width="3" stroke-dasharray="4 6"/>`,
- tortilla:`<ellipse cx="60" cy="68" rx="46" ry="22" fill="#f4e2c2" ${S}/><ellipse cx="60" cy="58" rx="46" ry="22" fill="#fbf0dc" ${S}/><circle cx="44" cy="54" r="3" fill="#d6b27a"/><circle cx="70" cy="62" r="4" fill="#d6b27a"/>`,
- donut:`<circle cx="60" cy="60" r="38" fill="#e39a3b" ${S}/><circle cx="60" cy="60" r="12" fill="var(--card)" ${S}/><path d="M34 46l3 2M80 40l2 3M84 72l-3 2M40 80l3-2" stroke="#fff" stroke-width="4" stroke-linecap="round"/>`,
- tostada:`<circle cx="60" cy="62" r="40" fill="#e9b34f" ${S}/><circle cx="60" cy="62" r="30" fill="none" stroke="#c98a2a" stroke-width="3"/>`
-};
-const svg=k=>`<svg viewBox="0 0 120 120" aria-hidden="true">${ICONS[k]||ICONS.loaf}</svg>`;
+let cat="Todo",PRODUCTS=[],status="loading";
+const sb=window.supabase&&window.SUPABASE&&SUPABASE.url&&SUPABASE.anonKey?window.supabase.createClient(SUPABASE.url,SUPABASE.anonKey):null;
+async function loadProducts(){
+ try{
+  if(!sb)throw new Error("Falta configurar Supabase en config.js");
+  const{data,error}=await sb.from("products").select("*").eq("activo",true).order("categoria").order("nombre").order("id");
+  if(error)throw error;
+  PRODUCTS=data.map(r=>({id:r.id,n:r.nombre,b:r.marca,c:r.categoria,m:r.medida,p:Number(r.precio),pc:r.promo_cant,pp:Number(r.promo_precio),s:r.stock,i:r.icono,col:r.color}));
+  status="ok";
+  /* ajusta el carrito a lo que realmente hay */
+  for(const id of Object.keys(cart)){const p=PRODUCTS.find(x=>x.id==id),n=p?Math.min(p.s,cart[id]):0;if(n>0)cart[id]=n;else delete cart[id]}
+  save();
+ }catch(e){console.error(e);if(status!=="ok")status="error"}
+ if(!PRODUCTS.some(p=>p.c===cat))cat="Todo";
+ drawCats();drawGrid();drawCart();
+}
 
 /* store info */
 const nm=esc(CONFIG.nombre);
@@ -291,24 +271,27 @@ function slots(){const out=[],now=new Date(),h=todayHours(),start=Math.max(toMin
 slots();
 
 /* catalogue */
-const cats=["Todo",...new Set(PRODUCTS.map(p=>p.c))];
-function drawCats(){$("#cats").innerHTML=cats.map(c=>`<button class="chip" type="button" data-c="${esc(c)}" aria-pressed="${c===cat}">${esc(c)}</button>`).join("")}
+function drawCats(){$("#cats").innerHTML=["Todo",...new Set(PRODUCTS.map(p=>p.c))].map(c=>`<button class="chip" type="button" data-c="${esc(c)}" aria-pressed="${c===cat}">${esc(c)}</button>`).join("")}
 function stockTag(p){return p.s<=0?`<span class="tag no">Agotado</span>`:p.s<=4?`<span class="tag low">Quedan ${p.s}</span>`:`<span class="tag ok">Disponible</span>`}
+const promoTag=p=>p.pc?`<span class="tag promo">${p.pc} × ${money(p.pp)}</span>`:"";
 function drawGrid(){
+ if(status!=="ok")return $("#grid").innerHTML=status==="loading"?`<div class="empty">Cargando productos…</div>`:`<div class="empty">El catálogo no está disponible en este momento.<br>Escríbenos por WhatsApp o intenta más tarde.<br><button class="btn" type="button" id="retry">Reintentar</button></div>`;
  const q=$("#q").value.trim().toLowerCase(),only=$("#onlyStock").checked;
- const list=PRODUCTS.filter(p=>(cat==="Todo"||p.c===cat)&&(!only||p.s>0)&&(!q||(p.n+" "+p.b+" "+p.c).toLowerCase().includes(q)));
+ const list=PRODUCTS.filter(p=>(cat==="Todo"||p.c===cat)&&(!only||p.s>0)&&(!q||(p.n+" "+p.b+" "+p.c+" "+p.m).toLowerCase().includes(q)));
  $("#grid").innerHTML=list.length?list.map(p=>{const n=cart[p.id]||0;
   const ctrl=p.s<=0?`<button class="btn" disabled>Agotado</button>`:n?`<div class="qty"><button data-dec="${p.id}" aria-label="Quitar uno">−</button><span>${n}</span><button data-inc="${p.id}" aria-label="Agregar uno" ${n>=p.s?"disabled":""}>+</button></div>`:`<button class="btn" data-inc="${p.id}">Agregar</button>`;
-  return `<article class="p"><div class="img" style="background:${esc(p.col)}">${svg(p.i)}</div><div class="body"><span class="brand">${esc(p.b)}</span><h3>${esc(p.n)}</h3><span class="meta">${esc(p.m)}</span>${stockTag(p)}<div class="foot"><span class="price">${money(p.p)}</span>${ctrl}</div></div></article>`}).join("")
+  return `<article class="p"><div class="img" style="background:${esc(p.col)}">${svg(p.i)}</div><div class="body"><span class="brand">${esc(p.b)}</span><h3>${esc(p.n)}</h3><span class="meta">${esc(p.m)}</span>${stockTag(p)}${promoTag(p)}<div class="foot"><span class="price">${money(p.p)}</span>${ctrl}</div></div></article>`}).join("")
   :`<div class="empty">No encontramos productos con esa búsqueda.</div>`;
 }
 /* cart */
 const items=()=>Object.entries(cart).map(([id,q])=>({p:PRODUCTS.find(x=>x.id==id),q})).filter(x=>x.p&&x.q>0);
+/* misma fórmula que create_order en supabase/schema.sql */
+const lineTotal=(p,q)=>Math.round((p.pc?Math.floor(q/p.pc)*p.pp+(q%p.pc)*p.p:q*p.p)*100)/100;
 const mode=()=>document.querySelector('input[name=mode]:checked').value;
-function totals(){const sub=items().reduce((a,x)=>a+x.p.p*x.q,0),fee=mode()==="domicilio"&&sub>0&&sub<CONFIG.envioGratisDesde?CONFIG.envio:0;return{sub,fee,tot:sub+fee}}
+function totals(){const sub=items().reduce((a,x)=>a+lineTotal(x.p,x.q),0),fee=mode()==="domicilio"&&sub>0&&sub<CONFIG.envioGratisDesde?CONFIG.envio:0;return{sub,fee,tot:sub+fee}}
 function drawCart(){
  const it=items(),t=totals();$("#count").textContent=it.reduce((a,x)=>a+x.q,0);
- $("#lines").innerHTML=it.length?it.map(x=>`<div class="line"><div><b>${esc(x.p.n)}</b><small>${esc(x.p.b)} · ${money(x.p.p)} c/u</small></div><div class="qty"><button data-dec="${x.p.id}" aria-label="Quitar uno">−</button><span>${x.q}</span><button data-inc="${x.p.id}" aria-label="Agregar uno" ${x.q>=x.p.s?"disabled":""}>+</button></div><b style="white-space:nowrap">${money(x.p.p*x.q)}</b></div>`).join("")+
+ $("#lines").innerHTML=it.length?it.map(x=>`<div class="line"><div><b>${esc(x.p.n)}</b><small>${esc(x.p.b)}${x.p.m?" · "+esc(x.p.m):""} · ${money(x.p.p)} c/u${x.p.pc?` · ${x.p.pc} × ${money(x.p.pp)}`:""}</small></div><div class="qty"><button data-dec="${x.p.id}" aria-label="Quitar uno">−</button><span>${x.q}</span><button data-inc="${x.p.id}" aria-label="Agregar uno" ${x.q>=x.p.s?"disabled":""}>+</button></div><b style="white-space:nowrap">${money(lineTotal(x.p,x.q))}</b></div>`).join("")+
   `<div class="tot" style="margin-top:8px"><span>Subtotal</span><span>${money(t.sub)}</span></div><div class="tot"><span>Envío</span><span>${mode()==="domicilio"?(t.fee?money(t.fee):"Gratis"):"Recoges en tienda"}</span></div><div class="tot big"><span>Total</span><span>${money(t.tot)}</span></div>`
   :`<div class="empty">Tu pedido está vacío.<br><a href="#productos" id="goShop">Ver productos</a></div>`;
  $("#form").classList.toggle("hide",!it.length);
@@ -319,6 +302,7 @@ document.addEventListener("click",e=>{
  if(i)change(i.dataset.inc,1);if(d)change(d.dataset.dec,-1);
  if(c){cat=c.dataset.c;drawCats();drawGrid()}
  if(e.target.id==="goShop")toggle(false);
+ if(e.target.id==="retry"){status="loading";drawGrid();loadProducts()}
 });
 $("#q").addEventListener("input",drawGrid);$("#onlyStock").addEventListener("change",drawGrid);
 
@@ -328,29 +312,48 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")toggle(false)});
 document.querySelectorAll("input[name=mode]").forEach(r=>r.addEventListener("change",()=>{const dom=mode()==="domicilio";
  $("#addrBox").classList.toggle("hide",!dom);$("#whenBox").classList.toggle("hide",dom);$("#cashLbl").textContent=dom?"Efectivo al recibir":"Efectivo en tienda";drawCart()}));
 
-let lastMsg="";
-$("#form").addEventListener("submit",e=>{
- e.preventDefault();const name=$("#name").value.trim(),tel=$("#tel").value.replace(/\D/g,""),dom=mode()==="domicilio",dir=$("#dir").value.trim();
+let lastMsg="",sending=false,attempt={sig:"",key:null};
+const uuid=()=>crypto.randomUUID?crypto.randomUUID():"10000000-1000-4000-8000-100000000000".replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
+$("#form").addEventListener("submit",async e=>{
+ e.preventDefault();if(sending)return;
+ const name=$("#name").value.trim(),tel=$("#tel").value.replace(/\D/g,""),dom=mode()==="domicilio",dir=$("#dir").value.trim();
  if(!name)return $("#err").textContent="Escribe tu nombre.";
  if(tel.length<10)return $("#err").textContent="Escribe un teléfono de 10 dígitos.";
  if(dom&&dir.length<8)return $("#err").textContent="Escribe tu dirección completa.";
+ if(!sb||status!=="ok"||!items().length)return $("#err").textContent="No podemos recibir pedidos en este momento. Intenta más tarde.";
  $("#err").textContent="";
- const t=totals(),pay=document.querySelector('input[name=pay]:checked').value,folio="P-"+Date.now().toString(36).slice(-5).toUpperCase();
- lastMsg=[`*Nuevo pedido ${folio}* – ${CONFIG.nombre}`,"",...items().map(x=>`• ${x.q} × ${x.p.n} (${x.p.b}) — ${money(x.p.p*x.q)}`),"",
-  `Subtotal: ${money(t.sub)}`,dom?`Envío: ${t.fee?money(t.fee):"Gratis"}`:"",`*Total: ${money(t.tot)}*`,"",
-  `Cliente: ${name}`,`Tel: ${tel}`,dom?`Entrega a domicilio: ${dir}`:`Recoger en tienda: ${$("#when").value}`,`Pago: ${pay}`,
-  $("#notes").value.trim()?`Notas: ${$("#notes").value.trim()}`:""].filter((l,i,a)=>l!==""||a[i-1]!=="").join("\n");
+ const pay=document.querySelector('input[name=pay]:checked').value,notes=$("#notes").value.trim(),when=$("#when").value;
+ const cliente={nombre:name,telefono:tel,modo:mode(),direccion:dir,hora:when,pago:pay,notas:notes};
+ const lines=items().map(x=>({id:x.p.id,cantidad:x.q}));
+ /* la misma clave al reintentar el mismo pedido evita descontar dos veces */
+ const sig=JSON.stringify([cliente,lines]);if(sig!==attempt.sig)attempt={sig,key:uuid()};
+ sending=true;$("#send").disabled=true;$("#send").textContent="Enviando…";
+ let res;
+ try{res=await sb.rpc("create_order",{cliente:{...cliente,clave:attempt.key},items:lines})}catch(x){res={error:x}}
+ sending=false;$("#send").disabled=false;$("#send").textContent="Enviar pedido";
+ if(res.error){
+  /* P0001 = mensaje escrito por nosotros en la base (p. ej. falta de existencia) */
+  $("#err").textContent=res.error.code==="P0001"?res.error.message:"No se pudo enviar el pedido. Revisa tu conexión e intenta de nuevo.";
+  return loadProducts();
+ }
+ const o=res.data,folio=o.folio;attempt={sig:"",key:null};
+ lastMsg=[`*Nuevo pedido ${folio}* – ${CONFIG.nombre}`,"",...o.partidas.map(x=>`• ${x.cantidad} × ${x.nombre} (${x.marca}) — ${money(Number(x.importe))}`),"",
+  `Subtotal: ${money(Number(o.subtotal))}`,dom?`Envío: ${Number(o.envio)?money(Number(o.envio)):"Gratis"}`:"",`*Total: ${money(Number(o.total))}*`,"",
+  `Cliente: ${name}`,`Tel: ${tel}`,dom?`Entrega a domicilio: ${dir}`:`Recoger en tienda: ${when}`,`Pago: ${pay}`,
+  notes?`Notas: ${notes}`:""].filter((l,i,a)=>l!==""||a[i-1]!=="").join("\n");
  $("#folio").textContent=folio;$("#waBtn").href="https://wa.me/"+CONFIG.whatsapp+"?text="+encodeURIComponent(lastMsg);
  const online=pay.startsWith("Pago en línea")&&CONFIG.linkPago;$("#payBtn").classList.toggle("hide",!online);if(online)$("#payBtn").href=CONFIG.linkPago;
  $("#waNum").textContent="Si el botón no abre WhatsApp, escríbenos al "+pretty+" con tu folio.";
  $("#cartView").classList.add("hide");$("#doneView").classList.remove("hide");
  try{localStorage.setItem(K+"-cliente",JSON.stringify({name,tel,dir}))}catch(e){}
+ /* el pedido ya quedó registrado: vaciar carrito y refrescar existencias */
+ cart={};save();$("#notes").value="";loadProducts();
 });
 $("#copyBtn").onclick=async()=>{try{await navigator.clipboard.writeText(lastMsg);$("#copyBtn").textContent="¡Copiado!"}catch(e){$("#copyBtn").textContent="No se pudo copiar"}};
-$("#newBtn").onclick=()=>{cart={};save();drawGrid();drawCart();$("#doneView").classList.add("hide");$("#cartView").classList.remove("hide");$("#copyBtn").textContent="Copiar pedido";slots()};
+$("#newBtn").onclick=()=>{$("#doneView").classList.add("hide");$("#cartView").classList.remove("hide");$("#copyBtn").textContent="Copiar pedido";slots()};
 try{const c=JSON.parse(localStorage.getItem(K+"-cliente")||"null");if(c){$("#name").value=c.name||"";$("#tel").value=c.tel||"";$("#dir").value=c.dir||""}}catch(e){}
 
-drawCats();drawGrid();drawCart();
+drawGrid();drawCart();loadProducts();
 }
 </script>
 </body>

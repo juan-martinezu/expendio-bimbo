@@ -1,15 +1,34 @@
 # Expendio Bimbo · Sitio de pedidos
 
-Sitio web estático (un solo `index.html`) para ver los productos disponibles y hacer pedidos para recoger en tienda o entrega a domicilio. Los pedidos llegan por WhatsApp con folio.
+Sitio web estático para ver los productos disponibles y hacer pedidos para recoger en tienda o entrega a domicilio. Los pedidos llegan por WhatsApp con folio. Productos, existencias y pedidos se guardan en Supabase.
 
-## Cómo editar
+- `index.html`: tienda.
+- `admin.html`: panel de administración (productos, existencias, pedidos).
 
-Todo lo que cambia seguido está al inicio del `<script>` en `index.html`:
+## Configurar la base de datos (una sola vez)
 
-- **`CONFIG`**: nombre, WhatsApp (formato `521` + 10 dígitos), dirección, enlace de Google Maps, Facebook, enlace de pago (Mercado Pago / Clip), costo de envío y horario.
-- **`PRODUCTS`**: lista de productos. `p` = precio, `s` = piezas en existencia (`0` = agotado), `c` = categoría.
+1. Crea un proyecto gratis en [supabase.com](https://supabase.com).
+2. **SQL Editor** → pega y corre `supabase/schema.sql`, después `supabase/seed.sql` (inventario inicial).
+3. **Authentication → Users → Add user**: tu correo y una contraseña (marca *Auto Confirm User*).
+4. **Authentication → Sign In / Providers**: desactiva *Allow new users to sign up*.
+5. En **SQL Editor** dale permiso de administrador a tu usuario:
+   ```sql
+   insert into public.admins select id from auth.users where email = 'TU_CORREO';
+   ```
+6. **Project Settings → API**: copia la URL del proyecto y la llave `anon` / `publishable` en `config.js`. Nunca uses la llave `service_role` / `secret`.
 
-Desde GitHub: abre `index.html` → ícono de lápiz → edita → **Commit changes**. La página se actualiza sola en 1–2 minutos.
+## Uso diario (`admin.html`)
+
+- **Llegó mercancía**: escribe las piezas y pulsa *+ Llegó mercancía*.
+- **Precio, existencia, promo** (ej. 2 piezas por $50): edita y pulsa *Guardar*.
+- **Producto nuevo**: *+ Producto nuevo*. Para quitar uno de la tienda, desmarca *Visible en la tienda*.
+- **Pedidos**: la existencia se descuenta sola cuando el cliente envía el pedido. *Cancelar* regresa las piezas; *Marcar entregado* lo cierra.
+
+Las ventas de mostrador se descuentan a mano (cambia la existencia).
+
+## Datos de la tienda
+
+**`CONFIG`**, al inicio del `<script>` en `index.html`: nombre, WhatsApp (formato `521` + 10 dígitos), dirección, Google Maps, Facebook, enlace de pago, envío y horario. Si cambias `envio` o `envioGratisDesde`, cambia también `c_envio` / `c_envio_gratis` en `supabase/schema.sql` y vuelve a correrlo.
 
 ## Logo
 
