@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Expendio · Administración</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#0d1626);--card:light-dark(#ffffff,#16223a);--ink:light-dark(#0f1f3a,#eef3fb);--soft:light-dark(#53627a,#aab8cf);--brand:#0b4ea2;
+--yolk2:light-dark(#e8f0fb,#14233a);--red:light-dark(#e30613,#ff5a5f);--line:light-dark(#dfe6f0,#26354f);--ok:light-dark(#2f7d3b,#7fd08a)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Nunito Sans",system-ui,sans-serif}
+h1,h2,h3{font-family:"Baloo 2",system-ui,sans-serif;line-height:1.1;margin:0}h1{font-size:24px}h3{font-size:18px}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+.btn{min-height:44px;border:0;border-radius:999px;padding:8px 18px;font-weight:800;cursor:pointer;background:var(--red);color:#fff}
+.btn.alt{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 2px var(--line)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+input,select{min-height:44px;border-radius:10px;border:2px solid var(--line);background:var(--card);padding:6px 10px;width:100%;font-size:16px}
+input[type=checkbox]{width:20px;height:20px;min-height:0;accent-color:var(--red)}
+input[type=color]{padding:2px}
+label{display:block;font-weight:700;font-size:13px}
+.top{background:var(--brand);color:#fff;border-bottom:4px solid var(--red);padding:10px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.top h1{margin-right:auto}.top .btn{color:#fff;box-shadow:inset 0 0 0 2px #fff;background:transparent}
+main{max-width:960px;margin:0 auto;padding:16px}
+.login{max-width:360px;margin:40px auto;display:grid;gap:14px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.bar input[type=search]{flex:1 1 220px;width:auto}.bar select{width:auto}
+.chip{min-height:44px;border-radius:999px;border:2px solid var(--line);background:var(--card);padding:6px 16px;font-weight:700;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:12px;display:grid;gap:10px}
+.card.off{opacity:.6}
+.head{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.head svg{width:48px;height:48px;flex:none;border-radius:10px}
+.head .t{margin-right:auto;flex:1 1 180px}.head small,.soft{color:var(--soft)}
+.fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:10px;align-items:end}
+.acts{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.acts input[type=number]{width:90px}
+.acts .check{display:flex;gap:6px;align-items:center;min-height:44px;margin-right:auto}
+.tag{font-size:13px;font-weight:800;border-radius:6px;padding:2px 8px;white-space:nowrap}
+.tag.ok{background:light-dark(#e2f3e4,#1f3a23);color:var(--ok)}.tag.low{background:light-dark(#fff0cc,#4a3a10)}.tag.no{background:light-dark(#fde4e1,#4a1f1a);color:var(--red)}
+table{width:100%;border-collapse:collapse}td{padding:4px 0;border-bottom:1px dashed var(--line)}td:last-child{text-align:right;white-space:nowrap}
+.msg{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:12px;font-weight:700;max-width:92vw;z-index:10}
+.msg.bad{background:#b3101a;color:#fff}
+.err{color:var(--red);font-weight:700;margin:0}
+dialog{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:16px;width:min(520px,94vw);padding:18px}
+dialog::backdrop{background:rgba(20,10,5,.5)}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}.form .full{grid-column:1/-1}
+.hide{display:none!important}
+@media(max-width:640px){.fields{grid-template-columns:repeat(2,minmax(0,1fr))}.fields .btn{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Administración del expendio</h1>
+  <a class="btn" href="index.html" style="text-decoration:none;display:inline-flex;align-items:center">Ver tienda</a>
+  <button class="btn hide" id="logout" type="button">Salir</button>
+</header>
+<main>
+  <form class="login" id="loginForm">
+    <h2>Entrar</h2>
+    <label>Correo<input id="email" type="email" autocomplete="username" required></label>
+    <label>Contraseña<input id="pass" type="password" autocomplete="current-password" required></label>
+    <p class="err" id="loginErr" role="alert"></p>
+    <button class="btn" type="submit">Entrar</button>
+  </form>
+
+  <div id="panel" class="hide">
+    <div class="bar">
+      <button class="chip" type="button" data-tab="products" aria-pressed="true">Productos</button>
+      <button class="chip" type="button" data-tab="orders" aria-pressed="false">Pedidos</button>
+    </div>
+    <section id="tabProducts">
+      <div class="bar">
+        <input id="q" type="search" placeholder="Buscar producto o marca" aria-label="Buscar">
+        <select id="filter" aria-label="Filtro"><option value="all">Todos</option><option value="low">Poca existencia o agotados</option><option value="off">Ocultos</option></select>
+        <button class="btn" type="button" id="newBtn">+ Producto nuevo</button>
+      </div>
+      <p class="soft" id="summary"></p>
+      <div id="list"></div>
+    </section>
+    <section id="tabOrders" class="hide">
+      <div class="bar">
+        <select id="state" aria-label="Estado"><option value="pendiente">Pendientes</option><option value="entregado">Entregados</option><option value="cancelado">Cancelados</option><option value="">Todos</option></select>
+        <button class="btn alt" type="button" id="refresh">Actualizar</button>
+      </div>
+      <div id="orders"></div>
+    </section>
+  </div>
+</main>
+
+<dialog id="dlg">
+  <form id="prodForm">
+    <h2 id="dlgTitle">Producto</h2>
+    <div class="form">
+      <label class="full">Nombre<input name="nombre" required maxlength="80"></label>
+      <label>Marca<input name="marca" required maxlength="40" list="brands"></label>
+      <label>Categoría<input name="categoria" required maxlength="40" list="catlist"></label>
+      <label>Medida<input name="medida" maxlength="30" placeholder="620 g, 3 piezas"></label>
+      <label>Precio<input name="precio" type="number" min="0" step="0.01" required></label>
+      <label>Promo: piezas<input name="promo_cant" type="number" min="2" step="1" placeholder="Sin promo"></label>
+      <label>Promo: precio<input name="promo_precio" type="number" min="0" step="0.01" placeholder="Sin promo"></label>
+      <label id="stockField">Existencia<input name="stock" type="number" min="0" step="1" value="0"></label>
+      <label>Dibujo<select name="icono"></select></label>
+      <label>Color de fondo<input name="color" type="color" value="#e8f1ff"></label>
+    </div>
+    <datalist id="brands"></datalist><datalist id="catlist"></datalist>
+    <p class="err" id="formErr" role="alert"></p>
+    <div class="acts" style="justify-content:flex-end"><button class="btn alt" type="button" id="cancelDlg">Cancelar</button><button class="btn" type="submit">Guardar</button></div>
+  </form>
+</dialog>
+<div class="msg hide" id="msg" role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="icons.js"></script>
+<script>
+{
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money=n=>"$"+Number(n).toLocaleString("es-MX",{minimumFractionDigits:2,maximumFractionDigits:2});
+const ICON_NAMES={loaf:"Pan de caja",toast:"Rebanadas",bun:"Bollo",roll:"Rol",concha:"Concha",muffin:"Mantecada",loafcake:"Panqué",cake:"Pastelito",bar:"Barra",cookie:"Galleta",tortilla:"Tortilla",donut:"Dona",tostada:"Tostada"};
+const sb=window.supabase&&window.SUPABASE&&SUPABASE.url&&SUPABASE.anonKey?window.supabase.createClient(SUPABASE.url,SUPABASE.anonKey):null;
+let products=[],orders=[],editing=null,msgTimer;
+
+function say(text,bad){const m=$("#msg");m.textContent=text;m.className="msg"+(bad?" bad":"");clearTimeout(msgTimer);msgTimer=setTimeout(()=>m.classList.add("hide"),4000)}
+const fail=e=>{console.error(e);say(e.message||"Algo salió mal.",true)};
+
+/* ---------- sesión ---------- */
+function showLogin(text){$("#panel").classList.add("hide");$("#logout").classList.add("hide");$("#loginForm").classList.remove("hide");$("#loginErr").textContent=text||""}
+async function enter(){
+ const{data,error}=await sb.rpc("is_admin");
+ if(error)return showLogin("No se pudo verificar tu acceso: "+error.message);
+ if(!data){await sb.auth.signOut();return showLogin("Ese usuario no es administrador (ver README).")}
+ $("#loginForm").classList.add("hide");$("#panel").classList.remove("hide");$("#logout").classList.remove("hide");
+ loadProducts();
+}
+$("#loginForm").addEventListener("submit",async e=>{
+ e.preventDefault();if(!sb)return;
+ $("#loginErr").textContent="";
+ const{error}=await sb.auth.signInWithPassword({email:$("#email").value.trim(),password:$("#pass").value});
+ if(error)return $("#loginErr").textContent="Correo o contraseña incorrectos.";
+ $("#pass").value="";enter();
+});
+$("#logout").onclick=async()=>{await sb.auth.signOut();showLogin()};
+
+/* ---------- productos ---------- */
+async function loadProducts(){
+ const{data,error}=await sb.from("products").select("*").order("categoria").order("nombre").order("id");
+ if(error)return fail(error);
+ products=data;drawProducts();
+}
+const stockTag=n=>n<=0?`<span class="tag no">Agotado</span>`:n<=3?`<span class="tag low">Quedan ${n}</span>`:`<span class="tag ok">${n} en existencia</span>`;
+function row(p){
+ return `<article class="card${p.activo?"":" off"}" data-id="${p.id}">
+ <div class="head"><span style="background:${esc(p.color)};border-radius:10px;display:flex">${svg(p.icono)}</span><div class="t"><h3>${esc(p.nombre)}</h3><small>${esc([p.marca,p.categoria,p.medida].filter(Boolean).join(" · "))}</small></div>${stockTag(p.stock)}</div>
+ <div class="fields">
+  <label>Precio<input data-f="precio" type="number" min="0" step="0.01" value="${p.precio}"></label>
+  <label>Existencia<input data-f="stock" type="number" min="0" step="1" value="${p.stock}"></label>
+  <label>Promo: piezas<input data-f="promo_cant" type="number" min="2" step="1" value="${p.promo_cant??""}" placeholder="—"></label>
+  <label>Promo: precio<input data-f="promo_precio" type="number" min="0" step="0.01" value="${p.promo_precio??""}" placeholder="—"></label>
+  <button class="btn" type="button" data-act="save">Guardar</button>
+ </div>
+ <div class="acts">
+  <label class="check"><input type="checkbox" data-act="active" ${p.activo?"checked":""}> Visible en la tienda</label>
+  <input type="number" min="1" step="1" data-add placeholder="Piezas" aria-label="Piezas que llegaron">
+  <button class="btn alt" type="button" data-act="add">+ Llegó mercancía</button>
+  <button class="btn alt" type="button" data-act="edit">Editar</button>
+ </div></article>`;
+}
+function drawProducts(){
+ const q=$("#q").value.trim().toLowerCase(),f=$("#filter").value;
+ const list=products.filter(p=>(!q||(p.nombre+" "+p.marca+" "+p.categoria+" "+p.medida).toLowerCase().includes(q))&&(f==="all"||(f==="low"&&p.activo&&p.stock<=3)||(f==="off"&&!p.activo)));
+ $("#list").innerHTML=list.map(row).join("")||`<p class="soft">No hay productos que mostrar.</p>`;
+ drawSummary();
+}
+function drawSummary(){$("#summary").textContent=`${products.length} productos · ${products.filter(p=>p.activo&&p.stock>0&&p.stock<=3).length} con poca existencia · ${products.filter(p=>p.activo&&p.stock<=0).length} agotados`}
+/* redibuja solo una tarjeta para no borrar cambios sin guardar en las demás */
+function replace(p){products=products.map(x=>x.id===p.id?p:x);const el=$(`.card[data-id="${p.id}"]`);if(el)el.outerHTML=row(p);drawSummary()}
+
+/* valida y convierte los campos numéricos; devuelve texto de error o null */
+function numbers(v){
+ const num=k=>v[k]===""?null:Number(v[k]);
+ const precio=num("precio"),promo_cant=num("promo_cant"),promo_precio=num("promo_precio"),stock=num("stock");
+ if(precio===null||!(precio>=0))return{error:"Escribe un precio válido."};
+ if(!Number.isInteger(stock)||stock<0)return{error:"La existencia debe ser un número entero, 0 o más."};
+ if((promo_cant===null)!==(promo_precio===null))return{error:"Para la promo llena piezas y precio, o deja los dos vacíos."};
+ if(promo_cant!==null&&(!Number.isInteger(promo_cant)||promo_cant<2||!(promo_precio>=0)))return{error:"La promo necesita 2 piezas o más."};
+ return{values:{precio,promo_cant,promo_precio,stock}};
+}
+
+$("#list").addEventListener("click",async e=>{
+ const b=e.target.closest("button[data-act]");if(!b)return;
+ const card=b.closest(".card"),p=products.find(x=>x.id==card.dataset.id),act=b.dataset.act;
+ if(act==="edit")return openForm(p);
+ b.disabled=true;
+ try{
+  if(act==="add"){
+   const n=Number(card.querySelector("[data-add]").value);
+   if(!Number.isInteger(n)||n<1)return say("Escribe cuántas piezas llegaron.",true);
+   const{data,error}=await sb.rpc("add_stock",{p_id:p.id,p_cant:n});
+   if(error)return fail(error);
+   replace({...p,stock:data});say(`${p.nombre}: ahora hay ${data}.`);
+  }
+  if(act==="save"){
+   const v={};card.querySelectorAll("[data-f]").forEach(i=>v[i.dataset.f]=i.value);
+   const r=numbers(v);if(r.error)return say(r.error,true);
+   const patch=r.values,stockChanged=patch.stock!==p.stock;
+   if(!stockChanged)delete patch.stock;
+   let query=sb.from("products").update(patch).eq("id",p.id);
+   /* si hubo una venta mientras editabas, no se pisa la existencia */
+   if(stockChanged)query=query.eq("stock",p.stock);
+   const{data,error}=await query.select();
+   if(error)return fail(error);
+   if(!data.length){await loadProducts();return say("La existencia cambió mientras editabas. Revisa y vuelve a guardar.",true)}
+   replace(data[0]);say("Guardado.");
+  }
+ }finally{b.disabled=false}
+});
+$("#list").addEventListener("change",async e=>{
+ const c=e.target.closest('[data-act="active"]');if(!c)return;
+ const id=c.closest(".card").dataset.id;
+ const{data,error}=await sb.from("products").update({activo:c.checked}).eq("id",id).select();
+ if(error||!data.length){c.checked=!c.checked;return fail(error||new Error("No se pudo cambiar."))}
+ products=products.map(x=>x.id===data[0].id?data[0]:x);c.closest(".card").classList.toggle("off",!data[0].activo);drawSummary();
+ say(data[0].activo?"Visible en la tienda.":"Oculto en la tienda.");
+});
+$("#q").addEventListener("input",drawProducts);$("#filter").addEventListener("change",drawProducts);
+
+/* ---------- alta / edición completa ---------- */
+const form=$("#prodForm");
+form.elements.icono.innerHTML=Object.keys(ICONS).map(k=>`<option value="${k}">${esc(ICON_NAMES[k]||k)}</option>`).join("");
+function openForm(p){
+ editing=p||null;form.reset();$("#formErr").textContent="";
+ $("#dlgTitle").textContent=p?"Editar producto":"Producto nuevo";
+ const opts=k=>[...new Set(products.map(x=>x[k]))].map(v=>`<option value="${esc(v)}">`).join("");
+ $("#brands").innerHTML=opts("marca");$("#catlist").innerHTML=opts("categoria");
+ if(p)for(const k of ["nombre","marca","categoria","medida","precio","promo_cant","promo_precio","stock","icono","color"])form.elements[k].value=p[k]??"";
+ /* la existencia de un producto ya creado se cambia en su tarjeta */
+ $("#stockField").classList.toggle("hide",!!p);
+ $("#dlg").showModal();
+}
+$("#newBtn").onclick=()=>openForm();$("#cancelDlg").onclick=()=>$("#dlg").close();
+form.addEventListener("submit",async e=>{
+ e.preventDefault();
+ const v=Object.fromEntries(new FormData(form)),r=numbers(editing?{...v,stock:String(editing.stock)}:v);
+ if(r.error)return $("#formErr").textContent=r.error;
+ const rec={nombre:v.nombre.trim(),marca:v.marca.trim(),categoria:v.categoria.trim(),medida:v.medida.trim(),icono:v.icono,color:v.color,...r.values};
+ if(!rec.nombre||!rec.marca||!rec.categoria)return $("#formErr").textContent="Completa nombre, marca y categoría.";
+ if(editing)delete rec.stock;
+ const btn=form.querySelector("[type=submit]");btn.disabled=true;
+ const{data,error}=editing?await sb.from("products").update(rec).eq("id",editing.id).select():await sb.from("products").insert(rec).select();
+ btn.disabled=false;
+ if(error||!data.length)return $("#formErr").textContent=error?error.message:"No se pudo guardar.";
+ $("#dlg").close();say("Guardado.");loadProducts();
+});
+
+/* ---------- pedidos ---------- */
+async function loadOrders(){
+ let query=sb.from("orders").select("*, order_items(*)").order("created_at",{ascending:false}).limit(100);
+ if($("#state").value)query=query.eq("estado",$("#state").value);
+ const{data,error}=await query;
+ if(error)return fail(error);
+ orders=data;
+ $("#orders").innerHTML=orders.map(o=>`<article class="card" data-id="${o.id}">
+  <div class="head"><div class="t"><h3>${esc(o.folio)} · ${money(o.total)}</h3><small>${esc(new Date(o.created_at).toLocaleString("es-MX",{dateStyle:"medium",timeStyle:"short"}))}</small></div>
+  <span class="tag ${o.estado==="entregado"?"ok":o.estado==="cancelado"?"no":"low"}">${esc(o.estado)}</span></div>
+  <div><b>${esc(o.cliente)}</b> · <a href="tel:${esc(o.telefono)}">${esc(o.telefono)}</a><br>
+  ${o.modo==="domicilio"?"A domicilio: "+esc(o.direccion):"Recoge en tienda: "+esc(o.hora)}<br>Pago: ${esc(o.pago)}${o.notas?"<br>Notas: "+esc(o.notas):""}</div>
+  <table>${o.order_items.map(i=>`<tr><td>${i.cantidad} × ${esc(i.nombre)} (${esc(i.marca)})</td><td>${money(i.importe)}</td></tr>`).join("")}${Number(o.envio)?`<tr><td>Envío</td><td>${money(o.envio)}</td></tr>`:""}</table>
+  ${o.estado==="pendiente"?`<div class="acts"><button class="btn" type="button" data-act="deliver_order">Marcar entregado</button><button class="btn alt" type="button" data-act="cancel_order">Cancelar (regresa existencia)</button></div>`:""}
+ </article>`).join("")||`<p class="soft">No hay pedidos.</p>`;
+}
+$("#orders").addEventListener("click",async e=>{
+ const b=e.target.closest("button[data-act]");if(!b)return;
+ const o=orders.find(x=>x.id==b.closest(".card").dataset.id);
+ if(b.dataset.act==="cancel_order"&&!confirm(`¿Cancelar el pedido ${o.folio}? Las piezas regresan al inventario.`))return;
+ b.disabled=true;
+ const{error}=await sb.rpc(b.dataset.act,{p_id:o.id});
+ if(error)fail(error);else say("Listo.");
+ loadOrders();loadProducts();
+});
+$("#state").addEventListener("change",loadOrders);$("#refresh").onclick=loadOrders;
+document.querySelectorAll("[data-tab]").forEach(t=>t.onclick=()=>{
+ const o=t.dataset.tab==="orders";
+ document.querySelectorAll("[data-tab]").forEach(x=>x.setAttribute("aria-pressed",x===t));
+ $("#tabOrders").classList.toggle("hide",!o);$("#tabProducts").classList.toggle("hide",o);
+ o?loadOrders():loadProducts();
+});
+
+if(!sb)showLogin("Falta configurar Supabase en config.js (ver README).");
+else sb.auth.getSession().then(({data})=>{if(data.session)enter()});
+}
+</script>
+</body>
+</html>
