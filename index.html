@@ -53,7 +53,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 .tools label{display:flex;gap:8px;align-items:center;font-weight:600;min-height:44px;white-space:nowrap}.tools input[type=checkbox]{width:20px;height:20px;accent-color:var(--red)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;margin-top:16px}
 .p{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column}
-.p .img{aspect-ratio:4/3;display:grid;place-items:center}.p .img svg{width:78%;height:78%}
+.p .img{aspect-ratio:4/3;display:grid;place-items:center;position:relative}.p .img svg{width:78%;height:78%}
+.p .img img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:8px;opacity:0}
+.p .img.foto{background:#fff!important}.p .img.foto img{opacity:1}.p .img.foto svg{display:none}
 .p .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
 .p .brand{font-size:13px;color:var(--soft);font-weight:700}.p .meta{font-size:14px;color:var(--soft)}
 .p .foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:8px}
@@ -233,13 +235,14 @@ const K="expendio-cart";
 let cart={};try{cart=JSON.parse(localStorage.getItem(K)||"{}")||{}}catch(e){cart={}}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(cart))}catch(e){}};
 let cat="Todo",PRODUCTS=[],status="loading";
+const loaded=new Set(); /* fotos ya cargadas: no parpadean al redibujar */
 const sb=window.supabase&&window.SUPABASE&&SUPABASE.url&&SUPABASE.anonKey?window.supabase.createClient(SUPABASE.url,SUPABASE.anonKey):null;
 async function loadProducts(){
  try{
   if(!sb)throw new Error("Falta configurar Supabase en config.js");
   const{data,error}=await sb.from("products").select("*").eq("activo",true).order("categoria").order("nombre").order("id");
   if(error)throw error;
-  PRODUCTS=data.map(r=>({id:r.id,n:r.nombre,b:r.marca,c:r.categoria,m:r.medida,p:Number(r.precio),pc:r.promo_cant,pp:Number(r.promo_precio),s:r.stock,i:r.icono,col:r.color}));
+  PRODUCTS=data.map(r=>({id:r.id,n:r.nombre,b:r.marca,c:r.categoria,m:r.medida,p:Number(r.precio),pc:r.promo_cant,pp:Number(r.promo_precio),s:r.stock,i:r.icono,col:r.color,img:!r.imagen_revision&&/^https:\/\//.test(r.imagen_url||"")?r.imagen_url:""}));
   status="ok";
   /* ajusta el carrito a lo que realmente hay */
   for(const id of Object.keys(cart)){const p=PRODUCTS.find(x=>x.id==id),n=p?Math.min(p.s,cart[id]):0;if(n>0)cart[id]=n;else delete cart[id]}
@@ -280,9 +283,12 @@ function drawGrid(){
  const list=PRODUCTS.filter(p=>(cat==="Todo"||p.c===cat)&&(!only||p.s>0)&&(!q||(p.n+" "+p.b+" "+p.c+" "+p.m).toLowerCase().includes(q)));
  $("#grid").innerHTML=list.length?list.map(p=>{const n=cart[p.id]||0;
   const ctrl=p.s<=0?`<button class="btn" disabled>Agotado</button>`:n?`<div class="qty"><button data-dec="${p.id}" aria-label="Quitar uno">−</button><span>${n}</span><button data-inc="${p.id}" aria-label="Agregar uno" ${n>=p.s?"disabled":""}>+</button></div>`:`<button class="btn" data-inc="${p.id}">Agregar</button>`;
-  return `<article class="p"><div class="img" style="background:${esc(p.col)}">${svg(p.i)}</div><div class="body"><span class="brand">${esc(p.b)}</span><h3>${esc(p.n)}</h3><span class="meta">${esc(p.m)}</span>${stockTag(p)}${promoTag(p)}<div class="foot"><span class="price">${money(p.p)}</span>${ctrl}</div></div></article>`}).join("")
+  return `<article class="p"><div class="img${loaded.has(p.img)?" foto":""}" style="background:${esc(p.col)}">${svg(p.i)}${p.img?`<img src="${esc(p.img)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">`:""}</div><div class="body"><span class="brand">${esc(p.b)}</span><h3>${esc(p.n)}</h3><span class="meta">${esc(p.m)}</span>${stockTag(p)}${promoTag(p)}<div class="foot"><span class="price">${money(p.p)}</span>${ctrl}</div></div></article>`}).join("")
   :`<div class="empty">No encontramos productos con esa búsqueda.</div>`;
 }
+/* fotos: el ícono se ve mientras carga; si falla, se queda. load/error no burbujean: se escuchan en captura */
+$("#grid").addEventListener("load",e=>{if(e.target.tagName!=="IMG")return;loaded.add(e.target.getAttribute("src"));e.target.parentNode.classList.add("foto")},true);
+$("#grid").addEventListener("error",e=>{if(e.target.tagName!=="IMG")return;loaded.delete(e.target.getAttribute("src"));e.target.parentNode.classList.remove("foto");e.target.remove()},true);
 /* cart */
 const items=()=>Object.entries(cart).map(([id,q])=>({p:PRODUCTS.find(x=>x.id==id),q})).filter(x=>x.p&&x.q>0);
 /* misma fórmula que create_order en supabase/schema.sql */

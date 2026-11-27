@@ -19,8 +19,9 @@ Static order site for a Bimbo expendio (Mexican bread shop). `index.html` (store
   - Admin = row in `public.admins` (`is_admin()`), not merely authenticated.
   - Anon can only read active products and call `create_order`, which locks rows, validates stock, prices server-side, is idempotent by `cliente.clave`, and raises Spanish messages (code `P0001`) shown to the customer.
   - Order state changes only through `cancel_order` (restores stock) / `deliver_order`; restocking through `add_stock`.
+- Product photos: `products.imagen_url/_fuente/_revision/_nota`; the store shows the icon when the URL is empty, fails to load, or `imagen_revision` is true (approved in `admin.html`). `supabase/imagenes.sql` (run after `schema.sql`) matches by nombre+marca+medida and only fills products without a photo.
 - Duplicated business rules, change together: promo price formula (`lineTotal` in `index.html` and `create_order`); delivery fee (`CONFIG.envio*` and `c_envio*` in SQL).
-- `index.html`: `CONFIG` at top of `<script>`; `loadProducts()` maps DB rows to `{id,n,b,c,m,p,pc,pp,s,i,col}` and clamps the cart to stock. Script wrapped in `{ ... }`; the Supabase client is `sb` (`#db` is an element id).
+- `index.html`: `CONFIG` at top of `<script>`; `loadProducts()` maps DB rows to `{id,n,b,c,m,p,pc,pp,s,i,col,img}` and clamps the cart to stock. Script wrapped in `{ ... }`; the Supabase client is `sb` (`#db` is an element id).
 - `horario` is positional: index 0 = Mon–Fri, 1 = Sat, 2 = Sun. `todayHours()` and `slots()` depend on that order.
 - Rendering via `innerHTML`; DB/user/config strings must go through `esc()` (admin shows customer-supplied text).
 - `<style>`: tokens on `:root` with `light-dark()`; breakpoints 860px and 600px in the store (`.cats` sticky offset must match top bar height).

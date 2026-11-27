@@ -19,6 +19,12 @@ create table if not exists public.products (
   check ((promo_cant is null) = (promo_precio is null))
 );
 
+-- Foto del producto (ver imagenes.sql). En revisión o sin URL = la tienda muestra el ícono.
+alter table public.products add column if not exists imagen_url      text check (imagen_url ~ '^https://');
+alter table public.products add column if not exists imagen_fuente   text;
+alter table public.products add column if not exists imagen_revision boolean not null default false;
+alter table public.products add column if not exists imagen_nota     text;
+
 create table if not exists public.orders (
   id         bigint generated always as identity primary key,
   folio      text unique,

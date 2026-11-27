@@ -35,6 +35,8 @@ main{max-width:960px;margin:0 auto;padding:16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:12px;display:grid;gap:10px}
 .card.off{opacity:.6}
 .head{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.head svg{width:48px;height:48px;flex:none;border-radius:10px}
+.head .pic{display:flex;position:relative;border-radius:10px;overflow:hidden;flex:none}.pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#fff}
+.form .check{display:flex;gap:6px;align-items:center;min-height:44px}
 .head .t{margin-right:auto;flex:1 1 180px}.head small,.soft{color:var(--soft)}
 .fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:10px;align-items:end}
 .acts{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.acts input[type=number]{width:90px}
@@ -105,6 +107,9 @@ dialog::backdrop{background:rgba(20,10,5,.5)}
       <label id="stockField">Existencia<input name="stock" type="number" min="0" step="1" value="0"></label>
       <label>Dibujo<select name="icono"></select></label>
       <label>Color de fondo<input name="color" type="color" value="#e8f1ff"></label>
+      <label class="full">Foto (dirección https)<input name="imagen_url" type="url" pattern="https://.*" placeholder="Vacío = se muestra el dibujo"></label>
+      <label class="full check"><input name="imagen_revision" type="checkbox"> Foto pendiente de revisión (la tienda muestra el dibujo)</label>
+      <p class="full soft" id="imgInfo" style="margin:0"></p>
     </div>
     <datalist id="brands"></datalist><datalist id="catlist"></datalist>
     <p class="err" id="formErr" role="alert"></p>
@@ -155,7 +160,7 @@ async function loadProducts(){
 const stockTag=n=>n<=0?`<span class="tag no">Agotado</span>`:n<=3?`<span class="tag low">Quedan ${n}</span>`:`<span class="tag ok">${n} en existencia</span>`;
 function row(p){
  return `<article class="card${p.activo?"":" off"}" data-id="${p.id}">
- <div class="head"><span style="background:${esc(p.color)};border-radius:10px;display:flex">${svg(p.icono)}</span><div class="t"><h3>${esc(p.nombre)}</h3><small>${esc([p.marca,p.categoria,p.medida].filter(Boolean).join(" · "))}</small></div>${stockTag(p.stock)}</div>
+ <div class="head"><span class="pic" style="background:${esc(p.color)}">${svg(p.icono)}${p.imagen_url&&!p.imagen_revision?`<img src="${esc(p.imagen_url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:""}</span><div class="t"><h3>${esc(p.nombre)}</h3><small>${esc([p.marca,p.categoria,p.medida].filter(Boolean).join(" · "))}</small></div>${p.imagen_revision?`<span class="tag low">Foto por revisar</span>`:""}${stockTag(p.stock)}</div>
  <div class="fields">
   <label>Precio<input data-f="precio" type="number" min="0" step="0.01" value="${p.precio}"></label>
   <label>Existencia<input data-f="stock" type="number" min="0" step="1" value="${p.stock}"></label>
@@ -237,7 +242,10 @@ function openForm(p){
  $("#dlgTitle").textContent=p?"Editar producto":"Producto nuevo";
  const opts=k=>[...new Set(products.map(x=>x[k]))].map(v=>`<option value="${esc(v)}">`).join("");
  $("#brands").innerHTML=opts("marca");$("#catlist").innerHTML=opts("categoria");
- if(p)for(const k of ["nombre","marca","categoria","medida","precio","promo_cant","promo_precio","stock","icono","color"])form.elements[k].value=p[k]??"";
+ if(p)for(const k of ["nombre","marca","categoria","medida","precio","promo_cant","promo_precio","stock","icono","color","imagen_url"])form.elements[k].value=p[k]??"";
+ form.elements.imagen_revision.checked=!!p?.imagen_revision;
+ const link=(u,t)=>/^https:\/\//.test(u||"")?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${t}</a>`:"";
+ $("#imgInfo").innerHTML=[esc(p?.imagen_nota),link(p?.imagen_url,"Ver foto"),link(p?.imagen_fuente,"Ver fuente")].filter(Boolean).join(" · ");
  /* la existencia de un producto ya creado se cambia en su tarjeta */
  $("#stockField").classList.toggle("hide",!!p);
  $("#dlg").showModal();
@@ -247,7 +255,7 @@ form.addEventListener("submit",async e=>{
  e.preventDefault();
  const v=Object.fromEntries(new FormData(form)),r=numbers(editing?{...v,stock:String(editing.stock)}:v);
  if(r.error)return $("#formErr").textContent=r.error;
- const rec={nombre:v.nombre.trim(),marca:v.marca.trim(),categoria:v.categoria.trim(),medida:v.medida.trim(),icono:v.icono,color:v.color,...r.values};
+ const rec={nombre:v.nombre.trim(),marca:v.marca.trim(),categoria:v.categoria.trim(),medida:v.medida.trim(),icono:v.icono,color:v.color,imagen_url:v.imagen_url.trim()||null,imagen_revision:!!v.imagen_revision,...r.values};
  if(!rec.nombre||!rec.marca||!rec.categoria)return $("#formErr").textContent="Completa nombre, marca y categoría.";
  if(editing)delete rec.stock;
  const btn=form.querySelector("[type=submit]");btn.disabled=true;
