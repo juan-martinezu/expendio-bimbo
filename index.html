@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Expendio · Pedidos en línea</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: friendly neighbourhood bakery counter, warm and quick
+   IDEA: the expendio's shelf and its paper order ticket
+   PICTURE: an illustrated shelf of loaves, buns and cakes under morning light
+   COLOUR and TYPE: brand blue, white, brand red accent; Baloo 2 + Nunito Sans
+   LAYOUT: hero shelf, sticky category bar, product grid, ticket-style cart drawer, info, footer */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#0d1626);--card:light-dark(#ffffff,#16223a);--ink:light-dark(#0f1f3a,#eef3fb);--soft:light-dark(#53627a,#aab8cf);--brand:#0b4ea2;--brand2:#083a7a;
+--yolk:#0b4ea2;--yolk2:light-dark(#e8f0fb,#14233a);--red:light-dark(#e30613,#ff5a5f);--line:light-dark(#dfe6f0,#26354f);--ok:light-dark(#2f7d3b,#7fd08a)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Nunito Sans",system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"Baloo 2",system-ui,sans-serif;line-height:1.05;text-wrap:balance;margin:0}
+h1{font-size:clamp(34px,5vw,52px);font-weight:800}h2{font-size:clamp(28px,3.6vw,38px);font-weight:800}h3{font-size:19px;font-weight:600}
+a{color:inherit}
+.band{padding:clamp(28px,4vw,64px) max(5vw,16px)}.wrap{max-width:1240px;margin:0 auto}
+button,input,select,textarea{font:inherit;color:inherit}
+.btn{min-height:44px;border:0;border-radius:999px;padding:10px 20px;font-weight:800;cursor:pointer;background:var(--red);color:#fff;display:inline-flex;align-items:center;gap:8px;text-decoration:none;justify-content:center}
+.btn.alt{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink)}
+.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.chip:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+/* top bar */
+.top{position:sticky;top:0;z-index:20;background:var(--brand);color:#fff;border-bottom:4px solid var(--red)}
+.top .wrap{display:flex;align-items:center;gap:14px;padding:10px max(5vw,16px);flex-wrap:wrap}
+.logo{font-family:"Baloo 2";font-weight:800;font-size:24px;text-decoration:none;display:flex;align-items:center;gap:8px}
+.top nav{display:flex;gap:18px;margin-left:auto;flex-wrap:wrap}.top nav a{text-decoration:none;font-weight:700}
+.cartbtn{background:#fff;color:var(--brand)}.logo img{height:40px;width:auto;display:block}.badge{background:var(--red);color:#fff;border-radius:999px;padding:0 8px;font-size:14px}
+/* hero */
+.hero{background:linear-gradient(160deg,var(--brand),var(--brand2));color:#fff}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:32px;align-items:center}
+.hero p{font-size:17px;max-width:44ch}.hero .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
+.hero .btn.alt{color:#fff;box-shadow:inset 0 0 0 2px #fff}.open{color:#0f1f3a}
+.open{display:inline-flex;gap:8px;align-items:center;background:#fff;border-radius:999px;padding:4px 14px;font-weight:700;margin-bottom:14px;font-size:15px}
+.dot{width:10px;height:10px;border-radius:50%;background:#2f7d3b}.dot.off{background:#d8372a}
+.scene{width:100%;height:auto;display:block}
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.step{display:flex;gap:14px;align-items:flex-start}.step b{font-family:"Baloo 2";font-size:28px;background:var(--yolk2);border-radius:50%;width:48px;height:48px;display:grid;place-items:center;flex:none}
+/* catalogue */
+.cats{position:sticky;top:62px;z-index:10;background:var(--bg);padding:12px 0;display:flex;gap:8px;overflow-x:auto;border-bottom:1px solid var(--line)}
+.chip{flex:none;min-height:44px;border-radius:999px;border:2px solid var(--line);background:var(--card);padding:6px 16px;font-weight:700;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tools{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0 8px;align-items:center}
+.tools input{flex:1 1 260px;min-height:44px;border-radius:12px;border:2px solid var(--line);background:var(--card);padding:8px 14px;font-size:16px}
+.tools label{display:flex;gap:8px;align-items:center;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;margin-top:16px}
+.p{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column}
+.p .img{aspect-ratio:4/3;display:grid;place-items:center}.p .img svg{width:78%;height:78%}
+.p .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.p .brand{font-size:13px;color:var(--soft);font-weight:700}.p .meta{font-size:14px;color:var(--soft)}
+.p .foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:8px}
+.price{font-family:"Baloo 2";font-size:24px;font-weight:800;white-space:nowrap}
+.tag{font-size:13px;font-weight:800;border-radius:6px;padding:2px 8px;align-self:flex-start}
+.tag.ok{background:light-dark(#e2f3e4,#1f3a23);color:var(--ok)}.tag.low{background:var(--yolk2)}.tag.no{background:light-dark(#fde4e1,#4a1f1a);color:var(--red)}
+.qty{display:inline-flex;align-items:center;border:2px solid var(--line);border-radius:999px}
+.qty button{width:40px;height:40px;border:0;background:none;font-size:20px;font-weight:800;cursor:pointer;border-radius:50%}
+.qty span{min-width:26px;text-align:center;font-weight:800}
+.empty{padding:40px;text-align:center;color:var(--soft)}
+.note{font-size:13px;color:var(--soft)}
+/* info */
+.info{background:var(--yolk2)}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
+.hours{width:100%;border-collapse:collapse}.hours td{padding:6px 0;border-bottom:1px dashed var(--line)}.hours td:last-child{text-align:right;white-space:nowrap}
+details{border-bottom:1px solid var(--line);padding:12px 0}summary{cursor:pointer;font-weight:800}
+footer{background:#0f1f3a;color:#eef3fb}footer .wrap{display:flex;gap:20px;justify-content:space-between;flex-wrap:wrap}
+/* drawer */
+.shade{position:fixed;inset:0;background:rgba(20,10,5,.5);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
+.shade.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(460px,100%);background:var(--bg);z-index:50;transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column}
+.drawer.on{transform:none}
+.dh{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:var(--brand);color:#fff}.dh button{color:#fff}
+.dh button{background:none;border:0;font-size:28px;cursor:pointer;width:44px;height:44px}
+.db{overflow-y:auto;padding:16px 20px;flex:1}
+.ticket{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;
+ -webkit-mask:radial-gradient(circle 7px at 50% 100%,#0000 98%,#000) 50% 100%/18px 100% repeat-x}
+.line{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+.line small{color:var(--soft);display:block}
+.tot{display:flex;justify-content:space-between;padding:4px 0}.tot.big{font-family:"Baloo 2";font-size:24px;font-weight:800;padding-top:8px}
+form{display:grid;gap:14px;margin-top:18px}
+fieldset{border:0;padding:0;margin:0;display:grid;gap:8px}legend{font-weight:800;margin-bottom:6px}
+.opt{display:flex;gap:10px;align-items:flex-start;border:2px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;background:var(--card)}
+.opt:has(input:checked){border-color:var(--red)}.opt input{margin-top:5px;accent-color:var(--red);width:18px;height:18px}
+.opt small{display:block;color:var(--soft)}
+.f label{display:block;font-weight:700;margin-bottom:4px}
+.f input,.f select,.f textarea{width:100%;min-height:44px;border-radius:10px;border:2px solid var(--line);background:var(--card);padding:8px 12px;font-size:16px}
+.err{color:var(--red);font-weight:700;font-size:14px}
+.done{text-align:center;display:grid;gap:12px}.folio{font-family:"Baloo 2";font-size:34px;font-weight:800}
+.hide{display:none!important}
+@media(max-width:860px){.hero .wrap{grid-template-columns:1fr}.cols,.steps{grid-template-columns:1fr}.top nav{display:none}}
+@media(max-width:600px){.cats{top:66px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.p .foot{flex-direction:column;align-items:stretch}.p .foot .btn,.qty{justify-content:space-between;width:100%}.price{font-size:21px}}
+@media(prefers-reduced-motion:reduce){.drawer,.shade{transition:none}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="logo" href="#inicio"><img src="assets/logo.png" alt="" onerror="this.remove()"><span id="storeName">Expendio</span></a>
+  <nav><a href="#productos">Productos</a><a href="#como">Cómo pedir</a><a href="#visitanos">Visítanos</a></nav>
+  <button class="btn cartbtn" id="openCart" aria-label="Abrir carrito">Mi pedido <span class="badge" id="count">0</span></button>
+</div></header>
+
+<section class="band hero" id="inicio"><div class="wrap">
+  <div>
+    <span class="open"><span class="dot" id="openDot"></span><span id="openTxt">Abierto</span></span>
+    <h1>Pan fresco del día, apartado y listo para recoger</h1>
+    <p id="heroTxt">Revisa lo que hay disponible hoy, arma tu pedido y pásalo a recoger a la tienda o pide que te lo llevemos. Pagas en línea, en tienda o al recibir.</p>
+    <div class="row"><a class="btn" href="#productos">Ver productos</a><a class="btn alt" href="#como">Cómo funciona</a></div>
+  </div>
+  <svg class="scene" viewBox="0 0 600 400" role="img" aria-label="Repisa de expendio con pan de caja, bollos, pastelitos y galletas">
+    <defs>
+      <linearGradient id="crust" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2b25a"/><stop offset="1" stop-color="#b8661f"/></linearGradient>
+      <linearGradient id="bag" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#eef6ff"/><stop offset="1" stop-color="#d9e7f5"/></linearGradient>
+      <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a7642c"/><stop offset="1" stop-color="#6e3d16"/></linearGradient>
+      <radialGradient id="sun" cx=".75" cy=".15" r=".7"><stop offset="0" stop-color="#fff6d6"/><stop offset="1" stop-color="#ffc93c" stop-opacity="0"/></radialGradient>
+      <g id="loaf"><rect x="0" y="0" width="110" height="130" rx="22" fill="url(#bag)" stroke="#2b1a10" stroke-width="3"/><rect x="10" y="22" width="90" height="70" rx="16" fill="url(#crust)"/><path d="M12 34h86" stroke="#fff" stroke-width="5" opacity=".55"/><rect x="18" y="98" width="74" height="18" rx="9" fill="#d8372a"/></g>
+      <g id="bun"><ellipse cx="0" cy="8" rx="38" ry="10" fill="#7a3f14" opacity=".35"/><path d="M-38 6c0-22 17-34 38-34s38 12 38 34z" fill="url(#crust)" stroke="#2b1a10" stroke-width="3"/><path d="M-20-12l4 3M0-18l1 4M18-12l-3 3" stroke="#fff4dc" stroke-width="4" stroke-linecap="round"/></g>
+      <g id="cake"><rect x="-30" y="-18" width="60" height="36" rx="10" fill="#5a2c12" stroke="#2b1a10" stroke-width="3"/><path d="M-26-6q8 6 13 0t13 0 13 0 13 0" stroke="#fff" stroke-width="4" fill="none"/><circle cx="-14" cy="-12" r="3" fill="#ff6a55"/><circle cx="10" cy="-13" r="3" fill="#ffc93c"/></g>
+      <g id="cookie"><circle r="20" fill="#d98b3a" stroke="#2b1a10" stroke-width="3"/><circle cx="-7" cy="-5" r="3" fill="#5a2c12"/><circle cx="6" cy="4" r="3" fill="#5a2c12"/><circle cx="4" cy="-9" r="2.5" fill="#5a2c12"/></g>
+    </defs>
+    <rect width="600" height="400" rx="28" fill="#eaf2ff"/><rect width="600" height="400" rx="28" fill="url(#sun)"/>
+    <rect x="30" y="40" width="540" height="330" rx="18" fill="#ffffff" stroke="#2b1a10" stroke-width="3"/>
+    <rect x="30" y="200" width="540" height="22" fill="url(#wood)" stroke="#2b1a10" stroke-width="3"/>
+    <rect x="30" y="344" width="540" height="26" rx="6" fill="url(#wood)" stroke="#2b1a10" stroke-width="3"/>
+    <use href="#loaf" x="60" y="70"/><use href="#loaf" x="185" y="70"/><use href="#loaf" x="310" y="70" transform="rotate(-3 365 135)"/>
+    <g transform="translate(470 150)"><use href="#bun"/></g><g transform="translate(520 182) scale(.8)"><use href="#bun"/></g>
+    <g transform="translate(95 320)"><use href="#cake"/></g><g transform="translate(165 320)"><use href="#cake"/></g><g transform="translate(130 290)"><use href="#cake"/></g>
+    <g transform="translate(260 320)"><use href="#bun"/></g><g transform="translate(330 320)"><use href="#bun"/></g>
+    <g transform="translate(420 322)"><use href="#cookie"/></g><g transform="translate(462 316)"><use href="#cookie"/></g><g transform="translate(504 324)"><use href="#cookie"/></g><g transform="translate(450 286)"><use href="#cookie"/></g>
+    <g transform="translate(470 60)"><rect width="90" height="46" rx="10" fill="#d8372a" stroke="#2b1a10" stroke-width="3"/><text x="45" y="30" text-anchor="middle" font-family="Baloo 2,sans-serif" font-weight="800" font-size="20" fill="#fff">¡Fresco!</text></g>
+  </svg>
+</div></section>
+
+<section class="band" id="como"><div class="wrap">
+  <h2 style="margin-bottom:22px">Cómo pedir</h2>
+  <div class="steps">
+    <div class="step"><b>1</b><div><h3>Elige tus productos</h3><p>Solo te mostramos lo que hay en existencia en la tienda.</p></div></div>
+    <div class="step"><b>2</b><div><h3>Recoger o a domicilio</h3><p>Escoge la hora para recoger en tienda o danos tu dirección.</p></div></div>
+    <div class="step"><b>3</b><div><h3>Confirma por WhatsApp</h3><p>Tu pedido nos llega con folio; paga en línea, en tienda o al recibir.</p></div></div>
+  </div>
+</div></section>
+
+<section class="band" id="productos" style="padding-top:0"><div class="wrap">
+  <h2>Productos disponibles hoy</h2>
+  <div class="cats" id="cats" role="toolbar" aria-label="Categorías"></div>
+  <div class="tools">
+    <input id="q" type="search" placeholder="Buscar: pan blanco, gansito, tortillinas…" aria-label="Buscar productos">
+    <label><input type="checkbox" id="onlyStock" checked> Solo disponibles</label>
+  </div>
+  <p class="note" id="sampleNote">Productos, precios y existencias de ejemplo: el dueño los cambia en la configuración del sitio.</p>
+  <div class="grid" id="grid"></div>
+</div></section>
+
+<section class="band info" id="visitanos"><div class="wrap cols">
+  <div><h2 style="margin-bottom:14px">Horario</h2><table class="hours" id="hours"></table></div>
+  <div><h2 style="margin-bottom:14px">Dónde estamos</h2><p id="addr"></p><p>WhatsApp: <strong id="phoneTxt"></strong></p><p><a id="mapLink" class="btn alt" href="#">Abrir en Google Maps</a></p><p><a id="fbLink" href="#">Síguenos en Facebook</a></p></div>
+  <div><h2 style="margin-bottom:8px">Preguntas</h2>
+    <details><summary>¿Cuánto tiempo apartan mi pedido?</summary><p>Lo guardamos hasta el cierre del día que elegiste para recoger.</p></details>
+    <details><summary>¿Hasta dónde entregan?</summary><p id="zoneTxt"></p></details>
+    <details><summary>¿Cómo pago en línea?</summary><p>Al confirmar te mandamos por WhatsApp el enlace de pago con tarjeta o los datos para transferencia.</p></details>
+    <details><summary>¿Y si algo se agota?</summary><p>Te avisamos por WhatsApp antes de preparar tu pedido y te ofrecemos un cambio.</p></details>
+  </div>
+</div></section>
+
+<footer class="band"><div class="wrap"><div><strong id="footName"></strong><br><span class="note" style="color:#cdb7a0">Expendio autorizado de productos Bimbo. Las marcas mencionadas pertenecen a sus respectivos dueños.</span></div><div>© <span id="yr"></span></div></div></footer>
+
+<div class="shade" id="shade"></div>
+<aside class="drawer" id="drawer" aria-label="Mi pedido" aria-hidden="true">
+  <div class="dh"><h2 style="font-size:28px">Mi pedido</h2><button id="closeCart" aria-label="Cerrar">×</button></div>
+  <div class="db" id="db">
+    <div id="cartView">
+      <div class="ticket" id="lines"></div>
+      <form id="form" novalidate>
+        <fieldset><legend>¿Cómo lo quieres?</legend>
+          <label class="opt"><input type="radio" name="mode" value="tienda" checked><span><b>Recoger en tienda</b><small>Sin costo extra · listo en 20 min</small></span></label>
+          <label class="opt"><input type="radio" name="mode" value="domicilio"><span><b>Entrega a domicilio</b><small id="feeTxt"></small></span></label>
+        </fieldset>
+        <div class="f"><label for="name">Nombre</label><input id="name" autocomplete="name" required></div>
+        <div class="f"><label for="tel">WhatsApp / teléfono</label><input id="tel" type="tel" inputmode="tel" autocomplete="tel" required></div>
+        <div class="f" id="whenBox"><label for="when">Hora para recoger</label><select id="when"></select></div>
+        <div class="f hide" id="addrBox"><label for="dir">Dirección de entrega</label><textarea id="dir" rows="2" autocomplete="street-address" placeholder="Calle, número, colonia y referencia"></textarea></div>
+        <fieldset><legend>Forma de pago</legend>
+          <label class="opt"><input type="radio" name="pay" value="Pago en línea con tarjeta" checked><span><b>Pagar en línea</b><small>Tarjeta de débito/crédito, enlace seguro de pago</small></span></label>
+          <label class="opt"><input type="radio" name="pay" value="Transferencia"><span><b>Transferencia</b><small>Te enviamos los datos por WhatsApp</small></span></label>
+          <label class="opt"><input type="radio" name="pay" value="Efectivo" ><span><b id="cashLbl">Efectivo en tienda</b><small>Pagas al recoger o al recibir</small></span></label>
+        </fieldset>
+        <div class="f"><label for="notes">Notas (opcional)</label><textarea id="notes" rows="2" placeholder="Ej. pan bien rebanado, cambio de $500"></textarea></div>
+        <p class="err" id="err" role="alert"></p>
+        <button class="btn" type="submit" id="send">Enviar pedido</button>
+      </form>
+    </div>
+    <div id="doneView" class="done hide">
+      <p>Tu folio</p><div class="folio" id="folio"></div>
+      <p>Último paso: manda el pedido por WhatsApp para que lo preparemos.</p>
+      <a class="btn" id="waBtn" href="#">Enviar por WhatsApp</a>
+      <a class="btn alt hide" id="payBtn" href="#">Pagar en línea ahora</a>
+      <button class="btn alt" id="copyBtn" type="button">Copiar pedido</button>
+      <p class="note" id="waNum"></p>
+      <button class="btn alt" id="newBtn" type="button">Hacer otro pedido</button>
+    </div>
+  </div>
+</aside>
+
+<script>
+{
+/* ======== CONFIGURACIÓN: cambia aquí los datos de tu expendio ======== */
+const CONFIG={
+  nombre:"Expendio Bimbo",
+  whatsapp:"5215512345678",           // 52 + 1 + 10 dígitos, sin espacios
+  direccion:"Av. Hidalgo 120, Col. Centro, junto a la farmacia",
+  mapa:"https://maps.google.com/?q=Av.+Hidalgo+120+Centro",
+  facebook:"https://www.facebook.com/profile.php?id=61580821344798",
+  linkPago:"",                         // tu enlace de Mercado Pago / Clip / Stripe; vacío = se manda por WhatsApp
+  envio:25, envioGratisDesde:300, zona:"Entregamos en un radio de 3 km de la tienda.",
+  horario:[["Lunes a viernes","07:00","21:00"],["Sábado","07:00","21:00"],["Domingo","08:00","15:00"]]
+};
+/* stock: número de piezas en tienda (0 = agotado). Precios de ejemplo en MXN. */
+const PRODUCTS=[
+ {id:1,n:"Pan Blanco Grande",b:"Bimbo",c:"Pan de caja",m:"680 g",p:52,s:24,i:"loaf",col:"#e8f1ff"},
+ {id:2,n:"Pan Integral",b:"Bimbo",c:"Pan de caja",m:"620 g",p:58,s:12,i:"loaf",col:"#f3e7d6"},
+ {id:3,n:"Pan Tostado Clásico",b:"Bimbo",c:"Pan de caja",m:"210 g",p:38,s:3,i:"toast",col:"#fff0cc"},
+ {id:4,n:"Medias Noches",b:"Bimbo",c:"Bollería",m:"8 piezas",p:45,s:10,i:"bun",col:"#ffe9d1"},
+ {id:5,n:"Bimbollos",b:"Bimbo",c:"Bollería",m:"8 piezas",p:46,s:0,i:"bun",col:"#ffe9d1"},
+ {id:6,n:"Roles de Canela",b:"Bimbo",c:"Pan dulce",m:"2 piezas",p:32,s:15,i:"roll",col:"#fde0c6"},
+ {id:7,n:"Conchas",b:"Bimbo",c:"Pan dulce",m:"2 piezas",p:30,s:9,i:"concha",col:"#fff0cc"},
+ {id:8,n:"Nito",b:"Bimbo",c:"Pan dulce",m:"62 g",p:20,s:30,i:"roll",col:"#f3e1d2"},
+ {id:9,n:"Mantecadas",b:"Bimbo",c:"Pan dulce",m:"4 piezas",p:38,s:6,i:"muffin",col:"#fff0cc"},
+ {id:10,n:"Panqué con Nuez",b:"Bimbo",c:"Pan dulce",m:"255 g",p:65,s:4,i:"loafcake",col:"#f3e7d6"},
+ {id:11,n:"Gansito",b:"Marinela",c:"Pastelitos",m:"50 g",p:20,s:40,i:"cake",col:"#ffe1dd"},
+ {id:12,n:"Pingüinos",b:"Marinela",c:"Pastelitos",m:"2 piezas",p:24,s:22,i:"cake",col:"#e6e0f5"},
+ {id:13,n:"Submarinos",b:"Marinela",c:"Pastelitos",m:"3 piezas",p:22,s:2,i:"cake",col:"#ffe1dd"},
+ {id:14,n:"Barritas de Fresa",b:"Marinela",c:"Galletas",m:"67 g",p:20,s:25,i:"bar",col:"#ffe1e8"},
+ {id:15,n:"Polvorones",b:"Marinela",c:"Galletas",m:"8 piezas",p:28,s:0,i:"cookie",col:"#f3e7d6"},
+ {id:16,n:"Tortillinas",b:"Tía Rosa",c:"Tortillas",m:"10 piezas",p:34,s:14,i:"tortilla",col:"#fff6dc"},
+ {id:17,n:"Donas Espolvoreadas",b:"Bimbo",c:"Pan dulce",m:"6 piezas",p:36,s:8,i:"donut",col:"#fde0e6"},
+ {id:18,n:"Tostadas Horneadas",b:"Milpa Real",c:"Tortillas",m:"18 piezas",p:30,s:11,i:"tostada",col:"#fff0cc"}
+];
+/* ===================================================================== */
+
+const $=s=>document.querySelector(s);
+const esc=v=>String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money=n=>"$"+n.toLocaleString("es-MX",{minimumFractionDigits:2,maximumFractionDigits:2});
+const K="expendio-cart";
+let cart={};try{cart=JSON.parse(localStorage.getItem(K)||"{}")||{}}catch(e){cart={}}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(cart))}catch(e){}};
+let cat="Todo";
+
+const S='stroke="#2b1a10" stroke-width="3" stroke-linejoin="round"';
+const ICONS={
+ loaf:`<rect x="20" y="22" width="80" height="78" rx="18" fill="#f7fbff" ${S}/><rect x="28" y="36" width="64" height="44" rx="12" fill="#e4a14d"/><rect x="34" y="84" width="52" height="10" rx="5" fill="#d8372a"/>`,
+ toast:`<rect x="26" y="30" width="58" height="62" rx="14" fill="#c9792f" ${S}/><rect x="38" y="24" width="58" height="62" rx="14" fill="#e9a955" ${S}/><rect x="48" y="36" width="38" height="38" rx="8" fill="#f7d79a"/>`,
+ bun:`<ellipse cx="60" cy="88" rx="44" ry="8" fill="#000" opacity=".12"/><path d="M16 84c0-30 20-46 44-46s44 16 44 46z" fill="#e39a3b" ${S}/><path d="M42 58l3 4M60 52v5M78 58l-3 4" stroke="#fff4dc" stroke-width="5" stroke-linecap="round"/>`,
+ roll:`<circle cx="60" cy="62" r="38" fill="#d98b3a" ${S}/><path d="M60 62m-6 0a6 6 0 1 1 12 0a14 14 0 1 1-28 0a22 22 0 1 1 44 0a30 30 0 1 1-58 4" fill="none" stroke="#7a3f14" stroke-width="5"/>`,
+ concha:`<path d="M16 82c0-30 20-48 44-48s44 18 44 48z" fill="#f4e2c2" ${S}/><path d="M30 70q30-30 60 0M38 54q22-14 44 0M60 36v44" stroke="#c99a5a" stroke-width="4" fill="none"/><rect x="14" y="80" width="92" height="10" rx="5" fill="#d98b3a" ${S}/>`,
+ muffin:`<path d="M32 66h56l-8 32H40z" fill="#d8372a" ${S}/><path d="M26 68c0-22 14-36 34-36s34 14 34 36z" fill="#f2b25a" ${S}/>`,
+ loafcake:`<path d="M18 52h84l-6 42H24z" fill="#b8661f" ${S}/><path d="M16 54c10-22 78-22 88 0" fill="#e4a14d" ${S}/><circle cx="44" cy="44" r="4" fill="#5a2c12"/><circle cx="62" cy="40" r="4" fill="#5a2c12"/><circle cx="78" cy="45" r="4" fill="#5a2c12"/>`,
+ cake:`<rect x="18" y="40" width="84" height="46" rx="14" fill="#5a2c12" ${S}/><path d="M24 56q9 8 18 0t18 0 18 0 18 0" stroke="#fff" stroke-width="5" fill="none"/><circle cx="40" cy="48" r="4" fill="#ff6a55"/><circle cx="74" cy="47" r="4" fill="#ffc93c"/>`,
+ bar:`<rect x="16" y="42" width="88" height="38" rx="10" fill="#e4a14d" ${S}/><rect x="26" y="52" width="68" height="18" rx="6" fill="#e0415a"/>`,
+ cookie:`<circle cx="60" cy="60" r="38" fill="#e8b878" ${S}/><circle cx="60" cy="60" r="26" fill="none" stroke="#c99a5a" stroke-width="3" stroke-dasharray="4 6"/>`,
+ tortilla:`<ellipse cx="60" cy="68" rx="46" ry="22" fill="#f4e2c2" ${S}/><ellipse cx="60" cy="58" rx="46" ry="22" fill="#fbf0dc" ${S}/><circle cx="44" cy="54" r="3" fill="#d6b27a"/><circle cx="70" cy="62" r="4" fill="#d6b27a"/>`,
+ donut:`<circle cx="60" cy="60" r="38" fill="#e39a3b" ${S}/><circle cx="60" cy="60" r="12" fill="var(--card)" ${S}/><path d="M34 46l3 2M80 40l2 3M84 72l-3 2M40 80l3-2" stroke="#fff" stroke-width="4" stroke-linecap="round"/>`,
+ tostada:`<circle cx="60" cy="62" r="40" fill="#e9b34f" ${S}/><circle cx="60" cy="62" r="30" fill="none" stroke="#c98a2a" stroke-width="3"/>`
+};
+const svg=k=>`<svg viewBox="0 0 120 120" aria-hidden="true">${ICONS[k]||ICONS.loaf}</svg>`;
+
+/* store info */
+const nm=esc(CONFIG.nombre);
+$("#storeName").textContent=CONFIG.nombre;$("#footName").textContent=CONFIG.nombre;document.title=CONFIG.nombre+" · Pedidos";
+$("#addr").textContent=CONFIG.direccion;$("#mapLink").href=CONFIG.mapa;$("#fbLink").href=CONFIG.facebook;
+const pretty=CONFIG.whatsapp.replace(/^521?/,"").replace(/(\d{2})(\d{4})(\d{4})/,"$1 $2 $3");
+$("#phoneTxt").textContent=pretty;$("#zoneTxt").textContent=CONFIG.zona;$("#yr").textContent=new Date().getFullYear();
+$("#feeTxt").textContent=`${money(CONFIG.envio)} · gratis desde ${money(CONFIG.envioGratisDesde)}`;
+$("#hours").innerHTML=CONFIG.horario.map(h=>`<tr><td>${esc(h[0])}</td><td>${esc(h[1])} – ${esc(h[2])}</td></tr>`).join("");
+const todayHours=()=>{const d=new Date().getDay();return CONFIG.horario[d===0?2:d===6?1:0]};
+const toMin=t=>{const[a,b]=t.split(":").map(Number);return a*60+b};
+{const h=todayHours(),now=new Date(),m=now.getHours()*60+now.getMinutes(),open=m>=toMin(h[1])&&m<toMin(h[2]);
+ $("#openDot").classList.toggle("off",!open);$("#openTxt").textContent=open?`Abierto hoy hasta las ${h[2]}`:`Cerrado · hoy ${h[1]} – ${h[2]}`;}
+
+/* pickup slots */
+function slots(){const out=[],now=new Date(),h=todayHours(),start=Math.max(toMin(h[1]),now.getHours()*60+now.getMinutes()+20),end=toMin(h[2]);
+ for(let t=Math.ceil(start/30)*30;t<=end-30;t+=30){const s=String(Math.floor(t/60)).padStart(2,"0")+":"+String(t%60).padStart(2,"0");out.push("Hoy "+s)}
+ const tm=CONFIG.horario[(now.getDay()+1)%7===0?2:(now.getDay()+1)%7===6?1:0];
+ for(let t=toMin(tm[1])+60;t<=toMin(tm[2])-30;t+=60){out.push("Mañana "+String(Math.floor(t/60)).padStart(2,"0")+":"+String(t%60).padStart(2,"0"))}
+ $("#when").innerHTML=out.map(s=>`<option>${s}</option>`).join("");}
+slots();
+
+/* catalogue */
+const cats=["Todo",...new Set(PRODUCTS.map(p=>p.c))];
+function drawCats(){$("#cats").innerHTML=cats.map(c=>`<button class="chip" type="button" data-c="${esc(c)}" aria-pressed="${c===cat}">${esc(c)}</button>`).join("")}
+function stockTag(p){return p.s<=0?`<span class="tag no">Agotado</span>`:p.s<=4?`<span class="tag low">Quedan ${p.s}</span>`:`<span class="tag ok">Disponible</span>`}
+function drawGrid(){
+ const q=$("#q").value.trim().toLowerCase(),only=$("#onlyStock").checked;
+ const list=PRODUCTS.filter(p=>(cat==="Todo"||p.c===cat)&&(!only||p.s>0)&&(!q||(p.n+" "+p.b+" "+p.c).toLowerCase().includes(q)));
+ $("#grid").innerHTML=list.length?list.map(p=>{const n=cart[p.id]||0;
+  const ctrl=p.s<=0?`<button class="btn" disabled>Agotado</button>`:n?`<div class="qty"><button data-dec="${p.id}" aria-label="Quitar uno">−</button><span>${n}</span><button data-inc="${p.id}" aria-label="Agregar uno" ${n>=p.s?"disabled":""}>+</button></div>`:`<button class="btn" data-inc="${p.id}">Agregar</button>`;
+  return `<article class="p"><div class="img" style="background:${esc(p.col)}">${svg(p.i)}</div><div class="body"><span class="brand">${esc(p.b)}</span><h3>${esc(p.n)}</h3><span class="meta">${esc(p.m)}</span>${stockTag(p)}<div class="foot"><span class="price">${money(p.p)}</span>${ctrl}</div></div></article>`}).join("")
+  :`<div class="empty">No encontramos productos con esa búsqueda.</div>`;
+}
+/* cart */
+const items=()=>Object.entries(cart).map(([id,q])=>({p:PRODUCTS.find(x=>x.id==id),q})).filter(x=>x.p&&x.q>0);
+const mode=()=>document.querySelector('input[name=mode]:checked').value;
+function totals(){const sub=items().reduce((a,x)=>a+x.p.p*x.q,0),fee=mode()==="domicilio"&&sub>0&&sub<CONFIG.envioGratisDesde?CONFIG.envio:0;return{sub,fee,tot:sub+fee}}
+function drawCart(){
+ const it=items(),t=totals();$("#count").textContent=it.reduce((a,x)=>a+x.q,0);
+ $("#lines").innerHTML=it.length?it.map(x=>`<div class="line"><div><b>${esc(x.p.n)}</b><small>${esc(x.p.b)} · ${money(x.p.p)} c/u</small></div><div class="qty"><button data-dec="${x.p.id}" aria-label="Quitar uno">−</button><span>${x.q}</span><button data-inc="${x.p.id}" aria-label="Agregar uno" ${x.q>=x.p.s?"disabled":""}>+</button></div><b style="white-space:nowrap">${money(x.p.p*x.q)}</b></div>`).join("")+
+  `<div class="tot" style="margin-top:8px"><span>Subtotal</span><span>${money(t.sub)}</span></div><div class="tot"><span>Envío</span><span>${mode()==="domicilio"?(t.fee?money(t.fee):"Gratis"):"Recoges en tienda"}</span></div><div class="tot big"><span>Total</span><span>${money(t.tot)}</span></div>`
+  :`<div class="empty">Tu pedido está vacío.<br><a href="#productos" id="goShop">Ver productos</a></div>`;
+ $("#form").classList.toggle("hide",!it.length);
+}
+function change(id,d){const p=PRODUCTS.find(x=>x.id==id);if(!p)return;const n=Math.max(0,Math.min(p.s,(cart[id]||0)+d));if(n)cart[id]=n;else delete cart[id];save();drawGrid();drawCart()}
+document.addEventListener("click",e=>{
+ const i=e.target.closest("[data-inc]"),d=e.target.closest("[data-dec]"),c=e.target.closest("[data-c]");
+ if(i)change(i.dataset.inc,1);if(d)change(d.dataset.dec,-1);
+ if(c){cat=c.dataset.c;drawCats();drawGrid()}
+ if(e.target.id==="goShop")toggle(false);
+});
+$("#q").addEventListener("input",drawGrid);$("#onlyStock").addEventListener("change",drawGrid);
+
+const toggle=on=>{$("#drawer").classList.toggle("on",on);$("#shade").classList.toggle("on",on);$("#drawer").setAttribute("aria-hidden",!on);if(on)$("#closeCart").focus()};
+$("#openCart").onclick=()=>toggle(true);$("#closeCart").onclick=()=>toggle(false);$("#shade").onclick=()=>toggle(false);
+document.addEventListener("keydown",e=>{if(e.key==="Escape")toggle(false)});
+document.querySelectorAll("input[name=mode]").forEach(r=>r.addEventListener("change",()=>{const dom=mode()==="domicilio";
+ $("#addrBox").classList.toggle("hide",!dom);$("#whenBox").classList.toggle("hide",dom);$("#cashLbl").textContent=dom?"Efectivo al recibir":"Efectivo en tienda";drawCart()}));
+
+let lastMsg="";
+$("#form").addEventListener("submit",e=>{
+ e.preventDefault();const name=$("#name").value.trim(),tel=$("#tel").value.replace(/\D/g,""),dom=mode()==="domicilio",dir=$("#dir").value.trim();
+ if(!name)return $("#err").textContent="Escribe tu nombre.";
+ if(tel.length<10)return $("#err").textContent="Escribe un teléfono de 10 dígitos.";
+ if(dom&&dir.length<8)return $("#err").textContent="Escribe tu dirección completa.";
+ $("#err").textContent="";
+ const t=totals(),pay=document.querySelector('input[name=pay]:checked').value,folio="P-"+Date.now().toString(36).slice(-5).toUpperCase();
+ lastMsg=[`*Nuevo pedido ${folio}* – ${CONFIG.nombre}`,"",...items().map(x=>`• ${x.q} × ${x.p.n} (${x.p.b}) — ${money(x.p.p*x.q)}`),"",
+  `Subtotal: ${money(t.sub)}`,dom?`Envío: ${t.fee?money(t.fee):"Gratis"}`:"",`*Total: ${money(t.tot)}*`,"",
+  `Cliente: ${name}`,`Tel: ${tel}`,dom?`Entrega a domicilio: ${dir}`:`Recoger en tienda: ${$("#when").value}`,`Pago: ${pay}`,
+  $("#notes").value.trim()?`Notas: ${$("#notes").value.trim()}`:""].filter((l,i,a)=>l!==""||a[i-1]!=="").join("\n");
+ $("#folio").textContent=folio;$("#waBtn").href="https://wa.me/"+CONFIG.whatsapp+"?text="+encodeURIComponent(lastMsg);
+ const online=pay.startsWith("Pago en línea")&&CONFIG.linkPago;$("#payBtn").classList.toggle("hide",!online);if(online)$("#payBtn").href=CONFIG.linkPago;
+ $("#waNum").textContent="Si el botón no abre WhatsApp, escríbenos al "+pretty+" con tu folio.";
+ $("#cartView").classList.add("hide");$("#doneView").classList.remove("hide");
+ try{localStorage.setItem(K+"-cliente",JSON.stringify({name,tel,dir}))}catch(e){}
+});
+$("#copyBtn").onclick=async()=>{try{await navigator.clipboard.writeText(lastMsg);$("#copyBtn").textContent="¡Copiado!"}catch(e){$("#copyBtn").textContent="No se pudo copiar"}};
+$("#newBtn").onclick=()=>{cart={};save();drawGrid();drawCart();$("#doneView").classList.add("hide");$("#cartView").classList.remove("hide");$("#copyBtn").textContent="Copiar pedido";slots()};
+try{const c=JSON.parse(localStorage.getItem(K+"-cliente")||"null");if(c){$("#name").value=c.name||"";$("#tel").value=c.tel||"";$("#dir").value=c.dir||""}}catch(e){}
+
+drawCats();drawGrid();drawCart();
+}
+</script>
+</body>
+</html>
